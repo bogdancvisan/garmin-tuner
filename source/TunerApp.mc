@@ -6,8 +6,8 @@ class TunerModel {
     var preset as Number = 0;
     var noteIndex as Number = 0;
     var a4 as Float = 440.0;
-    var demo as Boolean = true;
-    var source as PitchSource = new DemoSource();
+    var demo as Boolean = false;
+    var source as PitchSource = new MicSource();
 
     function strings() as Array<Number> { return Instruments.notes(preset); }
     function targetMidi() as Number { return strings()[noteIndex]; }
