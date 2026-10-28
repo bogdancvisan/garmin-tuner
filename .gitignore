@@ -8,6 +8,8 @@ developer_key.*
 *.der
 *.pem
 .vscode/settings.json
+.vscode/*
+!.vscode/launch.json
 .idea/
 simulator.json
 internal-storage/
