@@ -30,24 +30,11 @@ class TunerView extends WatchUi.View {
         var w = dc.getWidth();
         var h = dc.getHeight();
         var cx = w / 2;
-        var cy = h / 2;
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
         dc.clear();
 
         var cents = _model.shownCents;
         var midi = _model.shownMidi;
-
-        dc.drawText(cx, h * 0.08, Graphics.FONT_XTINY, _model.title(), Graphics.TEXT_JUSTIFY_CENTER);
-
-        if (!_model.isChromatic()) {
-            var strs = _model.strings();
-            for (var i = 0; i < strs.size(); i++) {
-                var x = cx + (i - (strs.size() - 1) / 2.0) * (w * 0.13);
-                var on = cents != null && _model.shownMatched && i == _model.noteIndex;
-                dc.setColor(on ? Graphics.COLOR_YELLOW : Graphics.COLOR_DK_GRAY, Graphics.COLOR_BLACK);
-                dc.drawText(x, h * 0.2, Graphics.FONT_XTINY, PitchMath.NAMES[strs[i] % 12], Graphics.TEXT_JUSTIFY_CENTER);
-            }
-        }
 
         // Detected note, always shown while a pitch is heard
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
@@ -56,7 +43,7 @@ class TunerView extends WatchUi.View {
 
         // Gauge: -50..+50 cents mapped to +-60 degrees around a pivot below the note
         var px = cx;
-        var py = cy + h * 0.32;
+        var py = h * 0.8;
         var r = w * 0.38;
         dc.setPenWidth(3);
         dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_BLACK);
@@ -69,23 +56,31 @@ class TunerView extends WatchUi.View {
         if (cents == null) {
             _needle = null;
             dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_BLACK);
-            dc.drawText(cx, h * 0.68, Graphics.FONT_XTINY, _model.source.status, Graphics.TEXT_JUSTIFY_CENTER);
+            dc.drawText(cx, h * 0.6, Graphics.FONT_XTINY, _model.source.status, Graphics.TEXT_JUSTIFY_CENTER);
+            dc.drawText(cx, h * 0.88, Graphics.FONT_XTINY, _model.title(), Graphics.TEXT_JUSTIFY_CENTER);
             return;
         }
 
         // Ease the drawn needle toward the smoothed reading
         var shown = _needle;
-        if (shown == null) { shown = cents; } else { shown = shown + 0.3 * (cents - shown); }
+        if (shown == null) { shown = cents; } else { shown = shown + 0.2 * (cents - shown); }
         _needle = shown;
 
         var inTune = _model.shownMatched && cents.abs() < 5.0;
         dc.setColor(inTune ? Graphics.COLOR_GREEN : (cents.abs() < 20.0 ? Graphics.COLOR_YELLOW : Graphics.COLOR_RED), Graphics.COLOR_BLACK);
-        dc.setPenWidth(5);
         var na = Math.toRadians(-90 + shown * 1.2);
-        dc.drawLine(px, py, px + (r - w * 0.02) * Math.cos(na), py + (r - w * 0.02) * Math.sin(na));
-        dc.fillCircle(px, py, 6);
-        dc.drawText(cx, h * 0.68, Graphics.FONT_SMALL, (cents >= 0 ? "+" : "") + cents.format("%.0f") + " ct", Graphics.TEXT_JUSTIFY_CENTER);
+        var ca = Math.cos(na);
+        var sa = Math.sin(na);
+        var len = r - w * 0.02;
+        var bw = w * 0.015;
+        dc.fillPolygon([
+            [px + len * ca, py + len * sa],
+            [px - bw * sa, py + bw * ca],
+            [px + bw * sa, py - bw * ca]
+        ]);
+        dc.fillCircle(px, py, w * 0.02);
+        dc.drawText(cx, h * 0.6, Graphics.FONT_SMALL, (cents >= 0 ? "+" : "") + cents.format("%.0f") + " ct", Graphics.TEXT_JUSTIFY_CENTER);
         dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_BLACK);
-        dc.drawText(cx, h * 0.8, Graphics.FONT_XTINY, PitchMath.midiToFreq(midi, _model.a4).format("%.1f") + " Hz", Graphics.TEXT_JUSTIFY_CENTER);
+        dc.drawText(cx, h * 0.88, Graphics.FONT_XTINY, _model.title(), Graphics.TEXT_JUSTIFY_CENTER);
     }
 }
