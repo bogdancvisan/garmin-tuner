@@ -1,0 +1,19 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "monkeyc",
+            "request": "launch",
+            "name": "Run App (fenix847mm)",
+            "stopAtLaunch": false,
+            "device": "fenix847mm"
+        },
+        {
+            "type": "monkeyc",
+            "request": "launch",
+            "name": "Run App (fenix8solar51mm)",
+            "stopAtLaunch": false,
+            "device": "fenix8solar51mm"
+        }
+    ]
+}

@@ -1,0 +1,8 @@
+<strings>
+    <string id="AppName">Tuner</string>
+    <string id="PresetsTitle">Instrument</string>
+    <string id="DemoMode">Demo needle</string>
+    <string id="DemoOn">On</string>
+    <string id="DemoOff">Off</string>
+    <string id="NoSignal">No mic input</string>
+</strings>
