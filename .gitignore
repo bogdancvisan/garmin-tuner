@@ -13,3 +13,5 @@ developer_key.*
 .idea/
 simulator.json
 internal-storage/
+err.txt
+out.txt
