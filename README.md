@@ -2,15 +2,15 @@
 
 Instrument tuner (guitar & more) for Garmin **Fenix 8**, built with Connect IQ (Monkey C).
 
-> **Status:** v0.2. Live mic pitch detection (`Toybox.Audio.Capture` + YIN) and a synthesized reference tone are implemented. Compiles for all four targets and is tested in the simulator with synthetic signals, but **not yet tested on a real watch** (see [docs/MICROPHONE.md](docs/MICROPHONE.md)). Launcher icon is a placeholder.
+> **Status:** v0.2. Live mic pitch detection (`Toybox.Audio.Capture` + YIN)  are implemented. Compiles for all four targets and is tested in the simulator with synthetic signals, but **not yet tested on a real watch** (see [docs/MICROPHONE.md](docs/MICROPHONE.md)). Launcher icon is a placeholder.
 
 ## Features
 - Presets: Guitar standard, Drop D, DADGAD, Open G, Bass 4/5, Ukulele, Violin, Viola, Cello, Mandolin, Banjo
 - String/note selector, target frequency (A4 = 440 Hz), cents needle (green within ±5 ct)
-- Live mic tuning (YIN) with automatic string detection, a smoothed needle, and vibration when in tune
-- Menu: guitar tunings (standard, drop D, DADGAD, open G/D, half/full step down), other instruments, "Show note only" (chromatic) mode, auto-string and vibration toggles, demo needle, experimental reference tone (the SDK 9.3.0 simulator crashes on audio playback)
+- Live mic tuning (YIN): the detected note is always shown with a smoothed needle; strings are detected automatically; the screen is kept lit while tuning
+- Menu: pick an instrument (guitar, bass, ukulele, violin, viola, cello, mandolin, banjo) or Chromatic (shows any note); UP/DOWN switch between that instrument's tunings (guitar: standard, drop D, DADGAD, open G/D, half/full step down). Vibration fires only when a string of the chosen tuning is in tune (not in Chromatic).
 
-Controls: UP/DOWN = previous/next string · START/tap = menu (long-press UP also opens it) · UP/DOWN also force a string (turn off Auto string to lock it) · BACK = exit.
+Controls: START/tap or long-press UP = instrument menu - UP/DOWN = previous/next tuning - BACK = exit.
 
 ## Target devices
 `fenix847mm`, `fenix8solar47mm`, `fenix8solar51mm`, `fenix8pro47mm` (in `manifest.xml`). **Verify** IDs in the SDK Manager's device list / `<SDK>/Devices/` and adjust.
@@ -54,8 +54,8 @@ SDK 9.3.0 provides `Toybox.Audio.Capture` (permission `AudioInput`, API 6.0.3+, 
 
 ## Roadmap
 - [x] v0.1 Scaffold, UI, presets
-- [x] v0.2 Live mic detection (YIN) + tone synthesis, simulator-tested with synthetic signals
-- [ ] v0.3 Real-watch testing/tuning (noise, octave errors, latency, battery); fix simulator tone crash; real icon
+- [x] v0.2 Live mic detection (YIN), simulator-tested with synthetic signals
+- [ ] v0.3 Real-watch testing/tuning (noise, octave errors, latency, battery); real icon
 - [ ] v0.4 A4 calibration, custom tunings, persisted settings, haptic/color in-tune feedback, chromatic mode
 - [ ] v1.0 Connect IQ Store release
 

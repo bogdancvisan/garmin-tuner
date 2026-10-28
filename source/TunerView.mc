@@ -15,7 +15,7 @@ class TunerView extends WatchUi.View {
     }
 
     function onShow() as Void {
-        _timer.start(method(:refresh), 50, true);
+        _timer.start(method(:refresh), 66, true);
     }
 
     function onHide() as Void {
@@ -37,22 +37,21 @@ class TunerView extends WatchUi.View {
         var cents = _model.shownCents;
         var midi = _model.shownMidi;
 
-        // Header: tuning name or chromatic mode
-        var title = _model.chromatic ? "Chromatic" : Instruments.names()[_model.preset];
-        dc.drawText(cx, h * 0.08, Graphics.FONT_XTINY, title, Graphics.TEXT_JUSTIFY_CENTER);
+        dc.drawText(cx, h * 0.08, Graphics.FONT_XTINY, _model.title(), Graphics.TEXT_JUSTIFY_CENTER);
 
-        if (!_model.chromatic) {
+        if (!_model.isChromatic()) {
             var strs = _model.strings();
             for (var i = 0; i < strs.size(); i++) {
                 var x = cx + (i - (strs.size() - 1) / 2.0) * (w * 0.13);
-                dc.setColor(i == _model.noteIndex ? Graphics.COLOR_YELLOW : Graphics.COLOR_DK_GRAY, Graphics.COLOR_BLACK);
+                var on = cents != null && _model.shownMatched && i == _model.noteIndex;
+                dc.setColor(on ? Graphics.COLOR_YELLOW : Graphics.COLOR_DK_GRAY, Graphics.COLOR_BLACK);
                 dc.drawText(x, h * 0.2, Graphics.FONT_XTINY, PitchMath.NAMES[strs[i] % 12], Graphics.TEXT_JUSTIFY_CENTER);
             }
         }
 
-        // Note name: detected note in chromatic mode, selected string otherwise
+        // Detected note, always shown while a pitch is heard
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
-        var noteText = (_model.chromatic && cents == null) ? "--" : PitchMath.noteName(midi);
+        var noteText = cents == null ? "--" : PitchMath.noteName(midi);
         dc.drawText(cx, h * 0.36, Graphics.FONT_NUMBER_MEDIUM, noteText, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
 
         // Gauge: -50..+50 cents mapped to +-60 degrees around a pivot below the note
@@ -71,18 +70,15 @@ class TunerView extends WatchUi.View {
             _needle = null;
             dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_BLACK);
             dc.drawText(cx, h * 0.68, Graphics.FONT_XTINY, _model.source.status, Graphics.TEXT_JUSTIFY_CENTER);
-            if (!_model.chromatic) {
-                dc.drawText(cx, h * 0.8, Graphics.FONT_XTINY, _model.targetFreq().format("%.1f") + " Hz", Graphics.TEXT_JUSTIFY_CENTER);
-            }
             return;
         }
 
         // Ease the drawn needle toward the smoothed reading
         var shown = _needle;
-        if (shown == null) { shown = cents; } else { shown = shown + 0.35 * (cents - shown); }
+        if (shown == null) { shown = cents; } else { shown = shown + 0.3 * (cents - shown); }
         _needle = shown;
 
-        var inTune = cents.abs() < 5.0;
+        var inTune = _model.shownMatched && cents.abs() < 5.0;
         dc.setColor(inTune ? Graphics.COLOR_GREEN : (cents.abs() < 20.0 ? Graphics.COLOR_YELLOW : Graphics.COLOR_RED), Graphics.COLOR_BLACK);
         dc.setPenWidth(5);
         var na = Math.toRadians(-90 + shown * 1.2);

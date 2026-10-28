@@ -7,13 +7,14 @@ import Toybox.System;
 // A source of detected frequency. Returns null when there is no signal.
 class PitchSource {
     var status as String = "";
-    var hint as Float = 440.0;
     protected var _loHz as Float = 50.0;
     protected var _hiHz as Float = 1000.0;
 
     function initialize() {}
     function start() as Void {}
     function stop() as Void {}
+    function pause() as Void {}
+    function resume() as Void {}
 
     // Frequency band that pitch detection should search.
     function setRange(loHz as Float, hiHz as Float) as Void {
@@ -24,16 +25,6 @@ class PitchSource {
     function getFrequency() as Float or Null { return null; }
 }
 
-// Wobbles around the hint so the needle UI can be exercised without a mic.
-class DemoSource extends PitchSource {
-    function initialize() { PitchSource.initialize(); status = "Demo"; }
-
-    function getFrequency() as Float or Null {
-        var ms = System.getTimer() % 8000;
-        var cents = 40.0 * Math.sin(ms / 8000.0 * 2.0 * Math.PI);
-        return hint * Math.pow(2.0, cents / 1200.0);
-    }
-}
 
 // Live pitch from the microphone: 8 kHz mono LPCM, 1024-sample windows, YIN.
 class MicSource extends PitchSource {
@@ -84,10 +75,26 @@ class MicSource extends PitchSource {
     }
 
     function stop() as Void {
+        pause();
+        _ready = false;
+    }
+
+    function pause() as Void {
+        _freq = null;
         if (_ready && Capture.getState() == Capture.CAPTURE_CAPTURING) {
             Capture.stop();
         }
-        _ready = false;
+    }
+
+    function resume() as Void {
+        if (!_ready) { start(); return; }
+        try {
+            Capture.start();
+            status = "Listening...";
+        } catch (e) {
+            _ready = false;
+            start();
+        }
     }
 
     function getFrequency() as Float or Null {
