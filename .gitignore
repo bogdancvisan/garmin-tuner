@@ -1,0 +1,13 @@
+bin/
+gen/
+*.prg
+*.iq
+*.prg.debug.xml
+developer_key
+developer_key.*
+*.der
+*.pem
+.vscode/settings.json
+.idea/
+simulator.json
+internal-storage/

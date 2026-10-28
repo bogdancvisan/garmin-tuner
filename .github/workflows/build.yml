@@ -1,0 +1,25 @@
+# Template: requires an SDK download URL (vars.CIQ_SDK_URL, a Linux SDK zip from Garmin's SDK Manager
+# or your own mirror) and a base64 developer key in secrets.CIQ_DEVELOPER_KEY_B64.
+# Device files must also be present in the SDK's Devices dir (installed via SDK Manager), which is
+# not scriptable without a Garmin login; supply a pre-populated SDK archive.
+name: build
+on: [push, pull_request]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    if: ${{ vars.CIQ_SDK_URL != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 17 }
+      - name: Fetch SDK
+        run: |
+          curl -fsSL "${{ vars.CIQ_SDK_URL }}" -o sdk.zip
+          unzip -q sdk.zip -d "$HOME/ciq-sdk"
+          echo "CIQ_SDK_HOME=$(dirname "$(find "$HOME/ciq-sdk" -name monkeyc -path '*bin*' | head -1)")/.." >> "$GITHUB_ENV"
+      - name: Build
+        run: |
+          echo "${{ secrets.CIQ_DEVELOPER_KEY_B64 }}" | base64 -d > "$RUNNER_TEMP/key.der"
+          DEVELOPER_KEY="$RUNNER_TEMP/key.der" bash scripts/build.sh fenix847mm
+      - uses: actions/upload-artifact@v4
+        with: { name: prg, path: bin/*.prg }
