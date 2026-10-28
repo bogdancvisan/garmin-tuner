@@ -2,7 +2,7 @@
 
 Instrument tuner (guitar & more) for Garmin **Fenix 8**, built with Connect IQ (Monkey C).
 
-> **Status:** v0.1 scaffold. UI, presets and tuning math are in place; live microphone pitch detection is **not possible with the current SDK (9.3.0 has no mic API)** — see [docs/MICROPHONE.md](docs/MICROPHONE.md). The source has not yet been compiled (device files need the SDK Manager login) — the first build may need small fixes.
+> **Status:** v0.1 scaffold. UI, presets and tuning math are in place; live microphone pitch detection is **not possible with the current SDK (9.3.0 has no mic API)** — see [docs/MICROPHONE.md](docs/MICROPHONE.md). The source compiles for all four target devices with SDK 9.3.0 (not yet run in the simulator or on a watch). Launcher icon is a placeholder; per-device sizes (40/65 px) give a harmless scaling warning.
 
 ## Features
 - Presets: Guitar standard, Drop D, DADGAD, Open G, Bass 4/5, Ukulele, Violin, Viola, Cello, Mandolin, Banjo
