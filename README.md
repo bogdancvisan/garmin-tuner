@@ -32,6 +32,13 @@ $env:CIQ_SDK_HOME="C:\sdk"; $env:DEVELOPER_KEY="C:\key\developer_key.der"; .\scr
 ```
 Output: `bin/GarminTuner-<device>.prg`. `.github/workflows/build.yml` is a template that needs a pre-populated SDK archive URL and a key secret.
 
+## Run on a real watch (sideload)
+No developer mode is needed on the watch.
+1. Build for your model: `.\scripts\build.ps1 fenix847mm` (or `fenix8solar47mm`, `fenix8solar51mm`, `fenix8pro47mm`) -> `bin\GarminTuner-<device>.prg`.
+2. Connect the watch by USB and copy the `.prg` to `GARMIN\Apps\`, then eject and unplug.
+3. Open the app from the watch's Apps list. Accept the microphone permission if prompted.
+4. If it crashes, read `GARMIN\Apps\LOGS\CIQ_LOG.YML` on the watch. Close Garmin Express if the watch doesn't mount.
+
 ## Layout
 `manifest.xml`, `monkey.jungle`, `resources/` (strings, drawables), `source/` (`TunerApp`, `TunerView`, `TunerDelegate`, `Instruments`, `PitchMath`, `PitchSource`, `YinDetector`), `scripts/`, `docs/`.
 
