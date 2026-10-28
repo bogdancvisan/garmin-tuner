@@ -22,6 +22,13 @@ class TunerDelegate extends WatchUi.BehaviorDelegate {
         return true;
     }
 
+    // Tap: next string (consumed here so it doesn't trigger onSelect's tone).
+    function onTap(evt as WatchUi.ClickEvent) as Boolean {
+        _model.step(1);
+        WatchUi.requestUpdate();
+        return true;
+    }
+
     // START: play the reference tone for the selected string.
     function onSelect() as Boolean {
         if (Attention has :playTone) {

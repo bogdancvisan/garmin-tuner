@@ -9,7 +9,7 @@ Instrument tuner (guitar & more) for Garmin **Fenix 8**, built with Connect IQ (
 - String/note selector, target frequency (A4 = 440 Hz), cents needle (green within ±5 ct)
 - START plays a reference tone; demo needle for UI testing (menu toggle)
 
-Controls: UP/DOWN = previous/next string · START = reference tone · long-press UP (menu) = instrument picker / demo toggle · BACK = exit.
+Controls: UP/DOWN = previous/next string · tap = next string · START = reference tone · long-press UP (menu) = instrument picker / demo toggle · BACK = exit.
 
 ## Target devices
 `fenix847mm`, `fenix8solar47mm`, `fenix8solar51mm`, `fenix8pro47mm` (in `manifest.xml`). **Verify** IDs in the SDK Manager's device list / `<SDK>/Devices/` and adjust.
