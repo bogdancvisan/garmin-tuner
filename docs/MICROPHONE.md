@@ -19,7 +19,7 @@
 - Add a noise gate (RMS threshold) and median-filter successive readings.
 
 ## If NOT available — alternatives
-1. **Reference-tone mode (implemented):** START plays the target note via `Attention.ToneProfile`; tune by ear. Limits: the watch speaker is tiny and tone frequency/waveform support varies, so treat it as a rough aid.
+1. **Reference tone (not viable on-device):** `Attention.playTone` only produces beeps (Garmin examples use 2.5-10 kHz); string frequencies of 80-660 Hz are outside what the speaker/API supports and caused errors in the simulator.
 2. **Manual/demo mode (implemented):** UI works without input (demo needle) for development.
 3. **Phone companion:** a phone app does the DSP and sends the detected frequency/cents to the watch via `Toybox.Communications` (phone messages/BLE). Added latency, requires the phone nearby.
 4. **External sensor/clip-on tuner** over BLE/ANT+ (long shot).

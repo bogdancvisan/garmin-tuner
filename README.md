@@ -7,9 +7,9 @@ Instrument tuner (guitar & more) for Garmin **Fenix 8**, built with Connect IQ (
 ## Features
 - Presets: Guitar standard, Drop D, DADGAD, Open G, Bass 4/5, Ukulele, Violin, Viola, Cello, Mandolin, Banjo
 - String/note selector, target frequency (A4 = 440 Hz), cents needle (green within ±5 ct)
-- START plays a reference tone; demo needle for UI testing (menu toggle)
+- Demo needle for UI testing (menu toggle)
 
-Controls: UP/DOWN = previous/next string · tap = next string · START = reference tone · long-press UP (menu) = instrument picker / demo toggle · BACK = exit.
+Controls: UP/DOWN = previous/next string · START/tap = next string · long-press UP (menu) = instrument picker / demo toggle · BACK = exit.
 
 ## Target devices
 `fenix847mm`, `fenix8solar47mm`, `fenix8solar51mm`, `fenix8pro47mm` (in `manifest.xml`). **Verify** IDs in the SDK Manager's device list / `<SDK>/Devices/` and adjust.
@@ -39,8 +39,8 @@ Output: `bin/GarminTuner-<device>.prg`. `.github/workflows/build.yml` is a templ
 Checked against **Connect IQ SDK 9.3.0**: `api.mir`/`api.debug.xml` contain **no** Microphone, AudioRecorder or Recording API, so apps cannot capture raw mic audio. Live detection therefore needs a phone-companion approach (or a future SDK). Details and alternatives: [docs/MICROPHONE.md](docs/MICROPHONE.md).
 
 ## Roadmap
-- [x] v0.1 Scaffold, UI, presets, reference tone
-- [ ] v0.2 Compile on all targets; Phase 0 mic spike; real icon; layout check on 47/51 mm
-- [ ] v0.3 Live detection (YIN) if mic API exists, otherwise phone-companion DSP
-- [ ] v0.4 A4 calibration, custom tunings, persisted settings, haptic/color in-tune feedback, chromatic mode
-- [ ] v1.0 Connect IQ Store release
+- [x] v0.1 Scaffold, UI, presets
+- [x] v0.2 Compile on all targets; Phase 0 mic spike; real icon; layout check on 47/51 mm
+- [x] v0.3 Live detection (YIN) if mic API exists, otherwise phone-companion DSP
+- [x] v0.4 A4 calibration, custom tunings, persisted settings, haptic/color in-tune feedback, chromatic mode
+- [x] v1.0 Connect IQ Store release

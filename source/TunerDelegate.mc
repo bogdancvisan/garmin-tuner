@@ -1,4 +1,3 @@
-import Toybox.Attention;
 import Toybox.Lang;
 import Toybox.WatchUi;
 
@@ -22,19 +21,10 @@ class TunerDelegate extends WatchUi.BehaviorDelegate {
         return true;
     }
 
-    // Tap: next string (consumed here so it doesn't trigger onSelect's tone).
-    function onTap(evt as WatchUi.ClickEvent) as Boolean {
+    // START / tap: next string.
+    function onSelect() as Boolean {
         _model.step(1);
         WatchUi.requestUpdate();
-        return true;
-    }
-
-    // START: play the reference tone for the selected string.
-    function onSelect() as Boolean {
-        if (Attention has :playTone) {
-            var f = _model.targetFreq().toNumber();
-            Attention.playTone({ :toneProfile => [new Attention.ToneProfile(f, 1500)] });
-        }
         return true;
     }
 
