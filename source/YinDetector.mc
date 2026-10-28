@@ -1,58 +1,88 @@
 import Toybox.Lang;
 
 // YIN pitch detector over signed 16-bit samples.
-// CPU is bounded by the tau range (set per target string) and a sample stride.
+// CPU is bounded: a coarse pass over every 2nd lag, a sample stride, then exact refinement near the winner.
 class YinDetector {
     private var _rate as Number;
     private var _threshold as Float = 0.15;
+    private var _samples as Array<Number> = [] as Array<Number>;
+    private var _n as Number = 0;
+    private var _stride as Number = 2;
 
     function initialize(sampleRate as Number) {
         _rate = sampleRate;
+    }
+
+    private function diff(tau as Number) as Number {
+        var sum = 0;
+        for (var i = 0; i < _n; i += _stride) {
+            var d = _samples[i] - _samples[i + tau];
+            sum += d * d / 16;
+        }
+        return sum;
     }
 
     // Returns frequency in Hz, or null when there is no confident pitch.
     function detect(samples as Array<Number>, tauMin as Number, tauMax as Number) as Float or Null {
         if (tauMax >= samples.size() / 2) { tauMax = samples.size() / 2 - 1; }
         if (tauMin < 2) { tauMin = 2; }
-        if (tauMax <= tauMin + 2) { return null; }
+        if (tauMax <= tauMin + 4) { return null; }
 
-        // Keep the per-call work small: real watches enforce a watchdog the simulator does not.
-        var n = samples.size() - tauMax - 2;
         var want = tauMax > 256 ? tauMax : 256;
-        if (n > want) { n = want; }
-        var stride = n / 40;
-        if (stride < 2) { stride = 2; }
-        var d = new [tauMax + 2] as Array<Float>;
-        var running = 0.0;
-        d[0] = 1.0;
-        for (var tau = 1; tau <= tauMax + 1; tau++) {
-            var sum = 0;
-            for (var i = 0; i < n; i += stride) {
-                var diff = samples[i] - samples[i + tau];
-                sum += diff * diff / 16;
-            }
-            running += sum;
-            d[tau] = running > 0 ? sum.toFloat() * tau / running : 1.0;
-        }
+        _n = samples.size() - tauMax - 4;
+        if (_n > want) { _n = want; }
+        _stride = _n / 32;
+        if (_stride < 2) { _stride = 2; }
+        _samples = samples;
 
-        // First dip below threshold at/after tauMin, then walk down to its local minimum.
+        // Coarse pass over even lags with a running-mean normalisation.
+        var running = 0.0;
+        var count = 0;
         var best = -1;
-        for (var tau = tauMin; tau <= tauMax; tau++) {
-            if (d[tau] < _threshold) {
-                while (tau + 1 <= tauMax && d[tau + 1] < d[tau]) { tau++; }
+        var prev = 1.0;
+        for (var tau = 2; tau <= tauMax; tau += 2) {
+            var raw = diff(tau);
+            running += raw;
+            count++;
+            var norm = running > 0 ? raw.toFloat() * count / running : 1.0;
+            if (tau >= tauMin && norm < _threshold) {
                 best = tau;
+                prev = norm;
+                // Walk down to the local minimum.
+                while (best + 2 <= tauMax) {
+                    var r2 = diff(best + 2);
+                    var n2 = r2.toFloat() * (count + 1) / (running + r2);
+                    if (n2 < prev) {
+                        best += 2;
+                        prev = n2;
+                        running += r2;
+                        count++;
+                    } else { break; }
+                }
                 break;
             }
         }
         if (best < 0) { return null; }
 
-        // Parabolic interpolation around the minimum.
-        var a = d[best - 1];
-        var b = d[best];
-        var c = d[best + 1];
-        var denom = a - 2.0 * b + c;
+        // Exact refinement within +-1 lag, then parabolic interpolation.
+        var a = diff(best - 1).toFloat();
+        var b = diff(best).toFloat();
+        var c = diff(best + 1).toFloat();
         var tauF = best.toFloat();
+        if (a < b && a <= c) {
+            tauF = best - 1.0;
+            c = b;
+            b = a;
+            a = diff(best - 2).toFloat();
+        } else if (c < b && c < a) {
+            tauF = best + 1.0;
+            a = b;
+            b = c;
+            c = diff(best + 2).toFloat();
+        }
+        var denom = a - 2.0 * b + c;
         if (denom.abs() > 0.000001) { tauF += (a - c) / (2.0 * denom); }
+        if (tauF < 2.0) { return null; }
         return _rate.toFloat() / tauF;
     }
 }

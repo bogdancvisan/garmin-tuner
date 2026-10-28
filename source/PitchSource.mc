@@ -25,7 +25,6 @@ class PitchSource {
     function getFrequency() as Float or Null { return null; }
 }
 
-
 // Live pitch from the microphone: 8 kHz mono LPCM, 1024-sample windows, YIN.
 class MicSource extends PitchSource {
     const RATE = 8000;
@@ -37,6 +36,7 @@ class MicSource extends PitchSource {
     private var _freq as Float or Null = null;
     private var _stamp as Number = 0;
     private var _ready as Boolean = false;
+    private var _paused as Boolean = false;
 
     function initialize() {
         PitchSource.initialize();
@@ -67,6 +67,7 @@ class MicSource extends PitchSource {
             });
             Capture.start();
             _ready = true;
+            _paused = false;
             status = "Listening...";
         } catch (e) {
             status = "Mic error";
@@ -75,26 +76,23 @@ class MicSource extends PitchSource {
     }
 
     function stop() as Void {
-        pause();
-        _ready = false;
-    }
-
-    function pause() as Void {
-        _freq = null;
+        _paused = true;
         if (_ready && Capture.getState() == Capture.CAPTURE_CAPTURING) {
             Capture.stop();
         }
+        _ready = false;
+    }
+
+    // Keep the capture session running and just ignore data: restarting it is slower and riskier.
+    function pause() as Void {
+        _paused = true;
+        _freq = null;
     }
 
     function resume() as Void {
-        if (!_ready) { start(); return; }
-        try {
-            Capture.start();
-            status = "Listening...";
-        } catch (e) {
-            _ready = false;
-            start();
-        }
+        _paused = false;
+        _freq = null;
+        if (!_ready) { start(); }
     }
 
     function getFrequency() as Float or Null {
@@ -103,6 +101,7 @@ class MicSource extends PitchSource {
     }
 
     function onData(audioData as ByteArray) as Void {
+        if (_paused) { return; }
         try {
             process(audioData);
         } catch (e) {

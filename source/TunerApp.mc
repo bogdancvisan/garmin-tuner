@@ -52,6 +52,7 @@ class TunerModel {
     function resume() as Void {
         resetTracking();
         source.resume();
+        _timer.stop();
         _timer.start(method(:tick), TICK_MS, true);
     }
 
@@ -106,6 +107,15 @@ class TunerModel {
 
     // Runs independently of the view so haptics and backlight work with the screen dim.
     function tick() as Void {
+        try {
+            step();
+        } catch (e) {
+            source.status = "Err " + e.getErrorMessage();
+            resetTracking();
+        }
+    }
+
+    private function step() as Void {
         var now = System.getTimer();
         updateRange();
 
