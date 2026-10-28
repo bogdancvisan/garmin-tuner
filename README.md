@@ -2,7 +2,7 @@
 
 Instrument tuner (guitar & more) for Garmin **Fenix 8**, built with Connect IQ (Monkey C).
 
-> **Status:** v0.1 scaffold. UI, presets and tuning math are in place; live microphone pitch detection is **blocked on SDK support** (see [docs/MICROPHONE.md](docs/MICROPHONE.md)). The source has not yet been compiled — the first build may need small fixes, and device IDs must be verified.
+> **Status:** v0.1 scaffold. UI, presets and tuning math are in place; live microphone pitch detection is **not possible with the current SDK (9.3.0 has no mic API)** — see [docs/MICROPHONE.md](docs/MICROPHONE.md). The source has not yet been compiled (device files need the SDK Manager login) — the first build may need small fixes.
 
 ## Features
 - Presets: Guitar standard, Drop D, DADGAD, Open G, Bass 4/5, Ukulele, Violin, Viola, Cello, Mandolin, Banjo
@@ -35,7 +35,7 @@ Output: `bin/GarminTuner-<device>.prg`. `.github/workflows/build.yml` is a templ
 `manifest.xml`, `monkey.jungle`, `resources/` (strings, drawables), `source/` (`TunerApp`, `TunerView`, `TunerDelegate`, `Instruments`, `PitchMath`, `PitchSource`, `YinDetector`), `scripts/`, `docs/`.
 
 ## Microphone summary
-Connect IQ has historically given apps no raw mic access. Details, the YIN plan and alternatives (reference tone, phone companion) are in [docs/MICROPHONE.md](docs/MICROPHONE.md).
+Checked against **Connect IQ SDK 9.3.0**: `api.mir`/`api.debug.xml` contain **no** Microphone, AudioRecorder or Recording API, so apps cannot capture raw mic audio. Live detection therefore needs a phone-companion approach (or a future SDK). Details and alternatives: [docs/MICROPHONE.md](docs/MICROPHONE.md).
 
 ## Roadmap
 - [x] v0.1 Scaffold, UI, presets, reference tone

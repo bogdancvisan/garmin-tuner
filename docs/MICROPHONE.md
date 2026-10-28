@@ -1,6 +1,6 @@
 # Microphone capture & pitch detection on Fenix 8
 
-**Status: UNVERIFIED — must be confirmed against the installed SDK.** No Connect IQ SDK was available when this was scaffolded, and web lookups of the API docs failed.
+**Status: SDK 9.3.0 (Oct 2026) has no microphone API.** Searching `bin/api.mir` and `api.debug.xml` for Microphone/AudioRecorder/Recording found nothing, so raw mic capture is not possible from a Connect IQ app today. Re-run this check on future SDKs.
 
 ## What is known / believed
 - Connect IQ apps have historically had **no raw microphone (PCM) access**. `Toybox.Media` covers audio *playback* and sync of media content; `Toybox.Attention` plays tones/vibration. Voice features (dictation, assistants) are handled by the OS, not exposed as samples.
