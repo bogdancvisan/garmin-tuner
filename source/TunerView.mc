@@ -39,12 +39,12 @@ class TunerView extends WatchUi.View {
         // Detected note, always shown while a pitch is heard
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
         var noteText = cents == null ? "--" : PitchMath.noteName(midi);
-        dc.drawText(cx, h * 0.36, Graphics.FONT_NUMBER_MEDIUM, noteText, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        dc.drawText(cx, h * 0.27, Graphics.FONT_NUMBER_MEDIUM, noteText, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
 
         // Gauge: -50..+50 cents mapped to +-60 degrees around a pivot below the note
         var px = cx;
         var py = h * 0.8;
-        var r = w * 0.38;
+        var r = w * 0.35;
         dc.setPenWidth(3);
         dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_BLACK);
         for (var c = -50; c <= 50; c += 10) {
