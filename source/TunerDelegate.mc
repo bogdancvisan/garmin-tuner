@@ -42,6 +42,7 @@ class TunerDelegate extends WatchUi.BehaviorDelegate {
         var state = _model.demo ? WatchUi.loadResource(Rez.Strings.DemoOn) : WatchUi.loadResource(Rez.Strings.DemoOff);
         menu.addItem(new WatchUi.MenuItem(demoLabel, state, :demo, {}));
         menu.addItem(new WatchUi.MenuItem("Ref. tone (START)", _model.tone ? "On" : "Off", :tone, {}));
+        menu.addItem(new WatchUi.MenuItem("Vibrate in tune", _model.haptic ? "On" : "Off", :vibe, {}));
         WatchUi.pushView(menu, new PresetMenuDelegate(_model), WatchUi.SLIDE_UP);
         return true;
     }
@@ -57,7 +58,9 @@ class PresetMenuDelegate extends WatchUi.Menu2InputDelegate {
 
     function onSelect(item as WatchUi.MenuItem) as Void {
         var id = item.getId();
-        if (id == :tone) {
+        if (id == :vibe) {
+            _model.haptic = !_model.haptic;
+        } else if (id == :tone) {
             _model.tone = !_model.tone;
         } else if (id == :demo) {
             _model.setDemo(!_model.demo);
