@@ -12,12 +12,14 @@ class YinDetector {
 
     // Returns frequency in Hz, or null when there is no confident pitch.
     function detect(samples as Array<Number>, tauMin as Number, tauMax as Number) as Float or Null {
-        var n = samples.size() / 2;
-        if (tauMax >= n) { tauMax = n - 1; }
+        if (tauMax >= samples.size() / 2) { tauMax = samples.size() / 2 - 1; }
         if (tauMin < 2) { tauMin = 2; }
         if (tauMax <= tauMin + 2) { return null; }
 
-        var stride = tauMax > 120 ? 4 : 2;
+        // Keep the per-call work small: real watches enforce a watchdog the simulator does not.
+        var n = samples.size() - tauMax - 2;
+        if (n > 256) { n = 256; }
+        var stride = tauMax > 120 ? 8 : 4;
         var d = new [tauMax + 2] as Array<Float>;
         var running = 0.0;
         d[0] = 1.0;

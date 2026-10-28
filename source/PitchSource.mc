@@ -87,11 +87,22 @@ class MicSource extends PitchSource {
     }
 
     function onData(audioData as ByteArray) as Void {
+        try {
+            process(audioData);
+        } catch (e) {
+            status = "Err " + e.getErrorMessage();
+        }
+    }
+
+    private function process(audioData as ByteArray) as Void {
         var offset = 0;
         // Skip a WAV header if the container adds one.
         if (audioData.size() > 44 && audioData[0] == 0x52 && audioData[1] == 0x49) { offset = 44; }
         var count = (audioData.size() - offset) / 2;
-        if (count < 512) { return; }
+        var tauMax = (RATE / (_target * 0.75)).toNumber();
+        var need = 256 + tauMax + 4;
+        if (count < need) { return; }
+        count = need;
 
         var samples = new [count] as Array<Number>;
         var energy = 0;
