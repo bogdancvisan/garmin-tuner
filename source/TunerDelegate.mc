@@ -1,4 +1,5 @@
 import Toybox.Lang;
+import Toybox.System;
 import Toybox.WatchUi;
 
 class TunerDelegate extends WatchUi.BehaviorDelegate {
@@ -10,12 +11,14 @@ class TunerDelegate extends WatchUi.BehaviorDelegate {
     }
 
     function onNextPage() as Boolean {
+        System.println("onNextPage");
         _model.step(1);
         WatchUi.requestUpdate();
         return true;
     }
 
     function onPreviousPage() as Boolean {
+        System.println("onPreviousPage");
         _model.step(-1);
         WatchUi.requestUpdate();
         return true;
@@ -23,6 +26,7 @@ class TunerDelegate extends WatchUi.BehaviorDelegate {
 
     // START / tap: next string.
     function onSelect() as Boolean {
+        System.println("onSelect");
         _model.step(1);
         WatchUi.requestUpdate();
         return true;
@@ -30,6 +34,7 @@ class TunerDelegate extends WatchUi.BehaviorDelegate {
 
     // Long-press UP / MENU: instrument picker.
     function onMenu() as Boolean {
+        System.println("onMenu");
         var menu = new WatchUi.Menu2({ :title => WatchUi.loadResource(Rez.Strings.PresetsTitle) });
         var names = Instruments.names();
         for (var i = 0; i < names.size(); i++) {
