@@ -1,5 +1,4 @@
 import Toybox.Lang;
-import Toybox.System;
 import Toybox.WatchUi;
 
 class TunerDelegate extends WatchUi.BehaviorDelegate {
@@ -11,40 +10,78 @@ class TunerDelegate extends WatchUi.BehaviorDelegate {
     }
 
     function onNextPage() as Boolean {
-        System.println("onNextPage");
         _model.step(1);
         WatchUi.requestUpdate();
         return true;
     }
 
     function onPreviousPage() as Boolean {
-        System.println("onPreviousPage");
         _model.step(-1);
         WatchUi.requestUpdate();
         return true;
     }
 
-    // START / tap: next string.
+    // START (upper right) / tap: settings menu.
     function onSelect() as Boolean {
-        if (_model.tone) { ToneGenerator.play(_model.targetFreq()); }
-        return true;
+        return openMenu();
     }
 
-    // Long-press UP / MENU: instrument picker.
+    // Long-press UP / MENU: same menu.
     function onMenu() as Boolean {
-        System.println("onMenu");
-        var menu = new WatchUi.Menu2({ :title => WatchUi.loadResource(Rez.Strings.PresetsTitle) });
-        var names = Instruments.names();
-        for (var i = 0; i < names.size(); i++) {
-            menu.addItem(new WatchUi.MenuItem(names[i], null, i, {}));
-        }
-        var demoLabel = WatchUi.loadResource(Rez.Strings.DemoMode);
-        var state = _model.demo ? WatchUi.loadResource(Rez.Strings.DemoOn) : WatchUi.loadResource(Rez.Strings.DemoOff);
-        menu.addItem(new WatchUi.MenuItem(demoLabel, state, :demo, {}));
-        menu.addItem(new WatchUi.MenuItem("Ref. tone (START)", _model.tone ? "On" : "Off", :tone, {}));
+        return openMenu();
+    }
+
+    private function openMenu() as Boolean {
+        var menu = new WatchUi.Menu2({ :title => "Tuner" });
+        menu.addItem(new WatchUi.MenuItem("Guitar tunings", null, :guitar, {}));
+        menu.addItem(new WatchUi.MenuItem("Other instruments", null, :other, {}));
+        menu.addItem(new WatchUi.MenuItem("Show note only", "Any instrument", :chromatic, {}));
+        menu.addItem(new WatchUi.MenuItem("Auto string", _model.autoString ? "On" : "Off", :auto, {}));
         menu.addItem(new WatchUi.MenuItem("Vibrate in tune", _model.haptic ? "On" : "Off", :vibe, {}));
-        WatchUi.pushView(menu, new PresetMenuDelegate(_model), WatchUi.SLIDE_UP);
+        menu.addItem(new WatchUi.MenuItem("Play tone", "Experimental", :tone, {}));
+        menu.addItem(new WatchUi.MenuItem("Demo needle", _model.demo ? "On" : "Off", :demo, {}));
+        WatchUi.pushView(menu, new MainMenuDelegate(_model), WatchUi.SLIDE_UP);
         return true;
+    }
+}
+
+class MainMenuDelegate extends WatchUi.Menu2InputDelegate {
+    private var _model as TunerModel;
+
+    function initialize(model as TunerModel) {
+        Menu2InputDelegate.initialize();
+        _model = model;
+    }
+
+    function onSelect(item as WatchUi.MenuItem) as Void {
+        var id = item.getId();
+        if (id == :guitar) {
+            pushPresets("Guitar tunings", Instruments.guitarPresets());
+            return;
+        } else if (id == :other) {
+            pushPresets("Instruments", Instruments.otherPresets());
+            return;
+        } else if (id == :chromatic) {
+            _model.setChromatic();
+        } else if (id == :auto) {
+            _model.setAutoString(!_model.autoString);
+        } else if (id == :vibe) {
+            _model.haptic = !_model.haptic;
+        } else if (id == :tone) {
+            ToneGenerator.play(_model.chromatic ? _model.a4 : _model.targetFreq());
+        } else if (id == :demo) {
+            _model.setDemo(!_model.demo);
+        }
+        WatchUi.popView(WatchUi.SLIDE_DOWN);
+    }
+
+    private function pushPresets(title as String, list as Array<Number>) as Void {
+        var menu = new WatchUi.Menu2({ :title => title });
+        var names = Instruments.names();
+        for (var i = 0; i < list.size(); i++) {
+            menu.addItem(new WatchUi.MenuItem(names[list[i]], null, list[i], {}));
+        }
+        WatchUi.pushView(menu, new PresetMenuDelegate(_model), WatchUi.SLIDE_LEFT);
     }
 }
 
@@ -57,16 +94,8 @@ class PresetMenuDelegate extends WatchUi.Menu2InputDelegate {
     }
 
     function onSelect(item as WatchUi.MenuItem) as Void {
-        var id = item.getId();
-        if (id == :vibe) {
-            _model.haptic = !_model.haptic;
-        } else if (id == :tone) {
-            _model.tone = !_model.tone;
-        } else if (id == :demo) {
-            _model.setDemo(!_model.demo);
-        } else {
-            _model.setPreset(id as Number);
-        }
+        _model.setPreset(item.getId() as Number);
+        WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);
         WatchUi.popView(WatchUi.SLIDE_DOWN);
     }
 }

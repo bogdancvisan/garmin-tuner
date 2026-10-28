@@ -7,6 +7,7 @@ import Toybox.WatchUi;
 class TunerView extends WatchUi.View {
     private var _model as TunerModel;
     private var _timer as Timer.Timer = new Timer.Timer();
+    private var _needle as Float or Null = null;
 
     function initialize(model as TunerModel) {
         View.initialize();
@@ -14,7 +15,7 @@ class TunerView extends WatchUi.View {
     }
 
     function onShow() as Void {
-        _timer.start(method(:refresh), 100, true);
+        _timer.start(method(:refresh), 50, true);
     }
 
     function onHide() as Void {
@@ -33,22 +34,26 @@ class TunerView extends WatchUi.View {
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
         dc.clear();
 
-        var target = _model.targetFreq();
-        var freq = _model.source.getFrequency(target);
-        var midi = _model.targetMidi();
+        var cents = _model.shownCents;
+        var midi = _model.shownMidi;
 
-        // Instrument and string selector
-        dc.drawText(cx, h * 0.08, Graphics.FONT_XTINY, Instruments.names()[_model.preset], Graphics.TEXT_JUSTIFY_CENTER);
-        var strs = _model.strings();
-        for (var i = 0; i < strs.size(); i++) {
-            var x = cx + (i - (strs.size() - 1) / 2.0) * (w * 0.13);
-            dc.setColor(i == _model.noteIndex ? Graphics.COLOR_YELLOW : Graphics.COLOR_DK_GRAY, Graphics.COLOR_BLACK);
-            dc.drawText(x, h * 0.2, Graphics.FONT_XTINY, PitchMath.NAMES[strs[i] % 12], Graphics.TEXT_JUSTIFY_CENTER);
+        // Header: tuning name or chromatic mode
+        var title = _model.chromatic ? "Chromatic" : Instruments.names()[_model.preset];
+        dc.drawText(cx, h * 0.08, Graphics.FONT_XTINY, title, Graphics.TEXT_JUSTIFY_CENTER);
+
+        if (!_model.chromatic) {
+            var strs = _model.strings();
+            for (var i = 0; i < strs.size(); i++) {
+                var x = cx + (i - (strs.size() - 1) / 2.0) * (w * 0.13);
+                dc.setColor(i == _model.noteIndex ? Graphics.COLOR_YELLOW : Graphics.COLOR_DK_GRAY, Graphics.COLOR_BLACK);
+                dc.drawText(x, h * 0.2, Graphics.FONT_XTINY, PitchMath.NAMES[strs[i] % 12], Graphics.TEXT_JUSTIFY_CENTER);
+            }
         }
 
-        // Target note
+        // Note name: detected note in chromatic mode, selected string otherwise
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
-        dc.drawText(cx, h * 0.36, Graphics.FONT_NUMBER_MEDIUM, PitchMath.noteName(midi), Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        var noteText = (_model.chromatic && cents == null) ? "--" : PitchMath.noteName(midi);
+        dc.drawText(cx, h * 0.36, Graphics.FONT_NUMBER_MEDIUM, noteText, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
 
         // Gauge: -50..+50 cents mapped to +-60 degrees around a pivot below the note
         var px = cx;
@@ -62,23 +67,29 @@ class TunerView extends WatchUi.View {
             dc.drawLine(px + r * Math.cos(a), py + r * Math.sin(a), px + inner * Math.cos(a), py + inner * Math.sin(a));
         }
 
-        if (freq == null) {
+        if (cents == null) {
+            _needle = null;
             dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_BLACK);
             dc.drawText(cx, h * 0.68, Graphics.FONT_XTINY, _model.source.status, Graphics.TEXT_JUSTIFY_CENTER);
-            dc.drawText(cx, h * 0.8, Graphics.FONT_XTINY, target.format("%.1f") + " Hz", Graphics.TEXT_JUSTIFY_CENTER);
+            if (!_model.chromatic) {
+                dc.drawText(cx, h * 0.8, Graphics.FONT_XTINY, _model.targetFreq().format("%.1f") + " Hz", Graphics.TEXT_JUSTIFY_CENTER);
+            }
             return;
         }
 
-        var cents = PitchMath.cents(freq, target);
+        // Ease the drawn needle toward the smoothed reading
+        var shown = _needle;
+        if (shown == null) { shown = cents; } else { shown = shown + 0.35 * (cents - shown); }
+        _needle = shown;
+
         var inTune = cents.abs() < 5.0;
         dc.setColor(inTune ? Graphics.COLOR_GREEN : (cents.abs() < 20.0 ? Graphics.COLOR_YELLOW : Graphics.COLOR_RED), Graphics.COLOR_BLACK);
         dc.setPenWidth(5);
-        var na = Math.toRadians(-90 + cents * 1.2);
+        var na = Math.toRadians(-90 + shown * 1.2);
         dc.drawLine(px, py, px + (r - w * 0.02) * Math.cos(na), py + (r - w * 0.02) * Math.sin(na));
         dc.fillCircle(px, py, 6);
         dc.drawText(cx, h * 0.68, Graphics.FONT_SMALL, (cents >= 0 ? "+" : "") + cents.format("%.0f") + " ct", Graphics.TEXT_JUSTIFY_CENTER);
         dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_BLACK);
-        dc.drawText(cx, h * 0.8, Graphics.FONT_XTINY, target.format("%.1f") + " Hz", Graphics.TEXT_JUSTIFY_CENTER);
+        dc.drawText(cx, h * 0.8, Graphics.FONT_XTINY, PitchMath.midiToFreq(midi, _model.a4).format("%.1f") + " Hz", Graphics.TEXT_JUSTIFY_CENTER);
     }
 }
-

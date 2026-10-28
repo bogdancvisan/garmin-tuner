@@ -65,6 +65,24 @@ function testYin(logger as Logger) as Boolean {
 }
 
 (:test)
+function testYinWide(logger as Logger) as Boolean {
+    var yin = new YinDetector(8000);
+    var targets = [41.2, 82.4, 110.0, 196.0, 329.6, 440.0];
+    var ok = true;
+    for (var k = 0; k < targets.size(); k++) {
+        var t = targets[k] as Float;
+        var s = new [1024] as Array<Number>;
+        for (var i = 0; i < 1024; i++) {
+            s[i] = (8000.0 * Math.sin(2.0 * Math.PI * t * i / 8000.0)).toNumber();
+        }
+        var f = yin.detect(s, (8000 / 1000.0).toNumber(), (8000 / 30.0).toNumber());
+        logger.debug("wide " + t + " -> " + f);
+        if (f == null || (f - t).abs() > t * 0.02) { ok = false; }
+    }
+    return ok;
+}
+
+(:test)
 function testTone(logger as Logger) as Boolean {
     var w = ToneGenerator.wav(110.0, 2);
     logger.debug("wav bytes " + w.size());

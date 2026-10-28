@@ -7,20 +7,31 @@ import Toybox.System;
 // A source of detected frequency. Returns null when there is no signal.
 class PitchSource {
     var status as String = "";
+    var hint as Float = 440.0;
+    protected var _loHz as Float = 50.0;
+    protected var _hiHz as Float = 1000.0;
+
     function initialize() {}
     function start() as Void {}
     function stop() as Void {}
-    function getFrequency(target as Float) as Float or Null { return null; }
+
+    // Frequency band that pitch detection should search.
+    function setRange(loHz as Float, hiHz as Float) as Void {
+        _loHz = loHz;
+        _hiHz = hiHz;
+    }
+
+    function getFrequency() as Float or Null { return null; }
 }
 
-// Wobbles around the target so the needle UI can be exercised without a mic.
+// Wobbles around the hint so the needle UI can be exercised without a mic.
 class DemoSource extends PitchSource {
     function initialize() { PitchSource.initialize(); status = "Demo"; }
 
-    function getFrequency(target as Float) as Float or Null {
+    function getFrequency() as Float or Null {
         var ms = System.getTimer() % 8000;
         var cents = 40.0 * Math.sin(ms / 8000.0 * 2.0 * Math.PI);
-        return target * Math.pow(2.0, cents / 1200.0);
+        return hint * Math.pow(2.0, cents / 1200.0);
     }
 }
 
@@ -34,7 +45,6 @@ class MicSource extends PitchSource {
     private var _yin as YinDetector = new YinDetector(RATE);
     private var _freq as Float or Null = null;
     private var _stamp as Number = 0;
-    private var _target as Float = 440.0;
     private var _ready as Boolean = false;
 
     function initialize() {
@@ -80,8 +90,7 @@ class MicSource extends PitchSource {
         _ready = false;
     }
 
-    function getFrequency(target as Float) as Float or Null {
-        _target = target;
+    function getFrequency() as Float or Null {
         if (_freq != null && System.getTimer() - _stamp > STALE_MS) { _freq = null; }
         return _freq;
     }
@@ -99,8 +108,10 @@ class MicSource extends PitchSource {
         // Skip a WAV header if the container adds one.
         if (audioData.size() > 44 && audioData[0] == 0x52 && audioData[1] == 0x49) { offset = 44; }
         var count = (audioData.size() - offset) / 2;
-        var tauMax = (RATE / (_target * 0.75)).toNumber();
-        var need = 256 + tauMax + 4;
+
+        var tauMax = (RATE / _loHz).toNumber();
+        var tauMin = (RATE / _hiHz).toNumber();
+        var need = (tauMax > 256 ? tauMax : 256) + tauMax + 4;
         if (count < need) { return; }
         count = need;
 
@@ -118,8 +129,7 @@ class MicSource extends PitchSource {
             return;
         }
 
-        var t = _target;
-        var f = _yin.detect(samples, (RATE / (t * 1.5)).toNumber(), (RATE / (t * 0.75)).toNumber());
+        var f = _yin.detect(samples, tauMin, tauMax);
         if (f == null) {
             status = "No pitch";
             return;

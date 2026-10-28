@@ -18,8 +18,10 @@ class YinDetector {
 
         // Keep the per-call work small: real watches enforce a watchdog the simulator does not.
         var n = samples.size() - tauMax - 2;
-        if (n > 256) { n = 256; }
-        var stride = tauMax > 120 ? 8 : 4;
+        var want = tauMax > 256 ? tauMax : 256;
+        if (n > want) { n = want; }
+        var stride = n / 40;
+        if (stride < 2) { stride = 2; }
         var d = new [tauMax + 2] as Array<Float>;
         var running = 0.0;
         d[0] = 1.0;

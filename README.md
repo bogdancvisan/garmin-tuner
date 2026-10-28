@@ -7,9 +7,10 @@ Instrument tuner (guitar & more) for Garmin **Fenix 8**, built with Connect IQ (
 ## Features
 - Presets: Guitar standard, Drop D, DADGAD, Open G, Bass 4/5, Ukulele, Violin, Viola, Cello, Mandolin, Banjo
 - String/note selector, target frequency (A4 = 440 Hz), cents needle (green within ±5 ct)
-- Live mic tuning (YIN); demo needle and reference tone are menu toggles (tone is off by default: the SDK 9.3.0 simulator crashes on audio playback)
+- Live mic tuning (YIN) with automatic string detection, a smoothed needle, and vibration when in tune
+- Menu: guitar tunings (standard, drop D, DADGAD, open G/D, half/full step down), other instruments, "Show note only" (chromatic) mode, auto-string and vibration toggles, demo needle, experimental reference tone (the SDK 9.3.0 simulator crashes on audio playback)
 
-Controls: UP/DOWN = previous/next string · START/tap = reference tone (if enabled) · long-press UP (menu) = instrument picker / demo toggle · BACK = exit.
+Controls: UP/DOWN = previous/next string · START/tap = menu (long-press UP also opens it) · UP/DOWN also force a string (turn off Auto string to lock it) · BACK = exit.
 
 ## Target devices
 `fenix847mm`, `fenix8solar47mm`, `fenix8solar51mm`, `fenix8pro47mm` (in `manifest.xml`). **Verify** IDs in the SDK Manager's device list / `<SDK>/Devices/` and adjust.
