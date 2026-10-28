@@ -1,26 +1,127 @@
+import Toybox.Audio;
+import Toybox.Audio.Capture;
 import Toybox.Lang;
 import Toybox.Math;
 import Toybox.System;
 
 // A source of detected frequency. Returns null when there is no signal.
 class PitchSource {
+    var status as String = "";
     function initialize() {}
+    function start() as Void {}
+    function stop() as Void {}
     function getFrequency(target as Float) as Float or Null { return null; }
 }
 
-// Placeholder for live detection. Raw mic PCM is not known to be available
-// to Connect IQ apps (see docs/MICROPHONE.md); wire a YIN detector here if it is.
-class MicSource extends PitchSource {
-    function initialize() { PitchSource.initialize(); }
-}
-
-// Wobbles around the target so the needle UI can be exercised in the simulator/on device.
+// Wobbles around the target so the needle UI can be exercised without a mic.
 class DemoSource extends PitchSource {
-    function initialize() { PitchSource.initialize(); }
+    function initialize() { PitchSource.initialize(); status = "Demo"; }
 
     function getFrequency(target as Float) as Float or Null {
         var ms = System.getTimer() % 8000;
         var cents = 40.0 * Math.sin(ms / 8000.0 * 2.0 * Math.PI);
         return target * Math.pow(2.0, cents / 1200.0);
     }
+}
+
+// Live pitch from the microphone: 8 kHz mono LPCM, 1024-sample windows, YIN.
+class MicSource extends PitchSource {
+    const RATE = 8000;
+    const WINDOW_SAMPLES = 1024;
+    const MIN_RMS = 120;
+    const STALE_MS = 700;
+
+    private var _yin as YinDetector = new YinDetector(RATE);
+    private var _freq as Float or Null = null;
+    private var _stamp as Number = 0;
+    private var _target as Float = 440.0;
+    private var _ready as Boolean = false;
+
+    function initialize() {
+        PitchSource.initialize();
+        status = "Mic idle";
+    }
+
+    function start() as Void {
+        if (!(Toybox has :Audio)) {
+            status = "No audio API";
+            return;
+        }
+        var format = {
+            :containerFormat => Audio.CONTAINER_WAV,
+            :codec => Audio.CODEC_LPCM,
+            :frequency => Audio.FREQ_8_KHZ,
+            :channels => Audio.CHANNEL_MONO
+        };
+        if (!Capture.isFormatSupported(format)) {
+            status = "Format unsupported";
+            return;
+        }
+        try {
+            Capture.initializeAudioCapture(self, {
+                :format => format,
+                :windowSize => WINDOW_SAMPLES * 2,
+                :windowFilledBehavior => Capture.WINDOW_FILLED_CONTINUE,
+                :filters => []
+            });
+            Capture.start();
+            _ready = true;
+            status = "Listening...";
+        } catch (e) {
+            status = "Mic error";
+            System.println("Capture init failed: " + e.getErrorMessage());
+        }
+    }
+
+    function stop() as Void {
+        if (_ready && Capture.getState() == Capture.CAPTURE_CAPTURING) {
+            Capture.stop();
+        }
+        _ready = false;
+    }
+
+    function getFrequency(target as Float) as Float or Null {
+        _target = target;
+        if (_freq != null && System.getTimer() - _stamp > STALE_MS) { _freq = null; }
+        return _freq;
+    }
+
+    function onData(audioData as ByteArray) as Void {
+        var offset = 0;
+        // Skip a WAV header if the container adds one.
+        if (audioData.size() > 44 && audioData[0] == 0x52 && audioData[1] == 0x49) { offset = 44; }
+        var count = (audioData.size() - offset) / 2;
+        if (count < 512) { return; }
+
+        var samples = new [count] as Array<Number>;
+        var energy = 0;
+        for (var i = 0; i < count; i++) {
+            var v = audioData[offset + 2 * i] | (audioData[offset + 2 * i + 1] << 8);
+            if (v > 32767) { v -= 65536; }
+            samples[i] = v;
+            energy += (v * v) / 256;
+        }
+        var rms = Math.sqrt(energy.toFloat() / count * 256.0);
+        if (rms < MIN_RMS) {
+            status = "Too quiet";
+            return;
+        }
+
+        var t = _target;
+        var f = _yin.detect(samples, (RATE / (t * 1.5)).toNumber(), (RATE / (t * 0.75)).toNumber());
+        if (f == null) {
+            status = "No pitch";
+            return;
+        }
+        _freq = f;
+        _stamp = System.getTimer();
+        status = "Listening...";
+    }
+
+    function onError(error as Capture.Error) as Void {
+        status = "Mic error " + error;
+        System.println("Capture error: " + error);
+    }
+
+    function onComplete() as Void {}
 }

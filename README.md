@@ -2,14 +2,14 @@
 
 Instrument tuner (guitar & more) for Garmin **Fenix 8**, built with Connect IQ (Monkey C).
 
-> **Status:** v0.1 scaffold. UI, presets and tuning math are in place; live microphone pitch detection is **not possible with the current SDK (9.3.0 has no mic API)** — see [docs/MICROPHONE.md](docs/MICROPHONE.md). The source compiles for all four target devices with SDK 9.3.0 (not yet run in the simulator or on a watch). Launcher icon is a placeholder; per-device sizes (40/65 px) give a harmless scaling warning.
+> **Status:** v0.2. Live mic pitch detection (`Toybox.Audio.Capture` + YIN) and a synthesized reference tone are implemented. Compiles for all four targets and is tested in the simulator with synthetic signals, but **not yet tested on a real watch** (see [docs/MICROPHONE.md](docs/MICROPHONE.md)). Launcher icon is a placeholder.
 
 ## Features
 - Presets: Guitar standard, Drop D, DADGAD, Open G, Bass 4/5, Ukulele, Violin, Viola, Cello, Mandolin, Banjo
 - String/note selector, target frequency (A4 = 440 Hz), cents needle (green within ±5 ct)
-- Demo needle for UI testing (menu toggle)
+- Live mic tuning (YIN); demo needle and reference tone are menu toggles (tone is off by default: the SDK 9.3.0 simulator crashes on audio playback)
 
-Controls: UP/DOWN = previous/next string · START/tap = next string · long-press UP (menu) = instrument picker / demo toggle · BACK = exit.
+Controls: UP/DOWN = previous/next string · START/tap = reference tone (if enabled) · long-press UP (menu) = instrument picker / demo toggle · BACK = exit.
 
 ## Target devices
 `fenix847mm`, `fenix8solar47mm`, `fenix8solar51mm`, `fenix8pro47mm` (in `manifest.xml`). **Verify** IDs in the SDK Manager's device list / `<SDK>/Devices/` and adjust.
@@ -36,11 +36,12 @@ Output: `bin/GarminTuner-<device>.prg`. `.github/workflows/build.yml` is a templ
 `manifest.xml`, `monkey.jungle`, `resources/` (strings, drawables), `source/` (`TunerApp`, `TunerView`, `TunerDelegate`, `Instruments`, `PitchMath`, `PitchSource`, `YinDetector`), `scripts/`, `docs/`.
 
 ## Microphone summary
-Checked against **Connect IQ SDK 9.3.0**: `api.mir`/`api.debug.xml` contain **no** Microphone, AudioRecorder or Recording API, so apps cannot capture raw mic audio. Live detection therefore needs a phone-companion approach (or a future SDK). Details and alternatives: [docs/MICROPHONE.md](docs/MICROPHONE.md).
+SDK 9.3.0 provides `Toybox.Audio.Capture` (permission `AudioInput`, API 6.0.3+, supported on Fenix 8). The app captures 8 kHz LPCM and runs YIN. Details: [docs/MICROPHONE.md](docs/MICROPHONE.md).
 
 ## Roadmap
 - [x] v0.1 Scaffold, UI, presets
-- [x] v0.2 Compile on all targets; Phase 0 mic spike; real icon; layout check on 47/51 mm
-- [x] v0.3 Live detection (YIN) if mic API exists, otherwise phone-companion DSP
-- [x] v0.4 A4 calibration, custom tunings, persisted settings, haptic/color in-tune feedback, chromatic mode
-- [x] v1.0 Connect IQ Store release
+- [x] v0.2 Live mic detection (YIN) + tone synthesis, simulator-tested with synthetic signals
+- [ ] v0.3 Real-watch testing/tuning (noise, octave errors, latency, battery); fix simulator tone crash; real icon
+- [ ] v0.4 A4 calibration, custom tunings, persisted settings, haptic/color in-tune feedback, chromatic mode
+- [ ] v1.0 Connect IQ Store release
+

@@ -1,26 +1,24 @@
 # Microphone capture & pitch detection on Fenix 8
 
-**Status: SDK 9.3.0 (Oct 2026) has no microphone API.** Searching `bin/api.mir` and `api.debug.xml` for Microphone/AudioRecorder/Recording found nothing, so raw mic capture is not possible from a Connect IQ app today. Re-run this check on future SDKs.
+**Status: raw microphone capture IS available** in Connect IQ SDK 9.3.0 via `Toybox.Audio` (API 6.0.3+), on Fenix 8 (43/47/51 mm, Solar, Pro) and other recent devices. (An earlier version of this doc wrongly said it was missing: the module is `Audio`, not `Microphone`.)
 
-## What is known / believed
-- Connect IQ apps have historically had **no raw microphone (PCM) access**. `Toybox.Media` covers audio *playback* and sync of media content; `Toybox.Attention` plays tones/vibration. Voice features (dictation, assistants) are handled by the OS, not exposed as samples.
-- Newer SDKs may add microphone-related APIs; check before assuming either way.
+## API summary
+- `Toybox.Audio.Capture` — permission `AudioInput` (manifest `<iq:uses-permission id="AudioInput"/>`).
+  - `Capture.isFormatSupported(format)`, `Capture.initializeAudioCapture(callbacks, settings)`, `Capture.start()/stop()`.
+  - Callbacks: `onData(ByteArray)`, `onError(error)`, `onComplete()`.
+  - Formats: LPCM (16-bit samples) or Opus; 8 / 11.025 / 12 / 16 / 22.05 / 24 / 32 / 44.1 kHz; mono/stereo; WAV or OGG container.
+  - `:windowSize` in bytes, `:windowFilledBehavior` (`WINDOW_FILLED_CONTINUE` for streaming), optional `FILTER_NREC` noise reduction (ignored by the simulator).
+  - Foreground only; not available to watch faces, data fields or widgets (this is a watch-app, so fine).
+- `Toybox.Audio.Output` — permission `AudioOutput`; `play()` accepts bundled resources, `DynamicAudioSourceBuilder` (runtime-generated WAV) or streaming sources.
 
-## Phase 0 spike (do this first)
-1. In the SDK: search `<SDK>/bin/api.mir` and docs (`doc/`) for `Microphone`, `AudioRecorder`, `Recording`.
-2. Add `using Toybox.Microphone;` to a scratch file and compile for `fenix847mm`; also `Toybox.Application has` / `Toybox has :Microphone` at runtime in the simulator.
-3. Check the Connect IQ release notes and the Garmin developer forum for the API level that introduced it, and whether it needs a manifest permission.
-4. Record the outcome here, and if available set `minApiLevel` and add the permission in `manifest.xml`.
+## What the app does
+- `MicSource` (`source/PitchSource.mc`): 8 kHz mono LPCM, 1024-sample windows (2048 bytes), RMS noise gate, then YIN (`source/YinDetector.mc`).
+- YIN is restricted to a lag band around the selected string (0.75x to 1.5x of the target frequency), uses a sample stride and integer maths to stay within the watchdog limit. Parabolic interpolation refines the lag.
+- Verified headless in the simulator (`source/Tests.mc`): synthetic sines from 31 Hz (B0) to 659 Hz detected within ~1.5 % with no watchdog errors. **Not yet verified with a real microphone** — the WAV header handling (44-byte skip if `RIFF` present) and noise threshold (`MIN_RMS`) may need tuning on a watch.
+- Reference tone (`source/ToneGenerator.mc`): synthesizes a 2 s sine WAV and plays it via `Output`. **Off by default**: in SDK 9.3.0 the simulator process crashes on `Output.play` with this source (generation and `complete()` work). Enable via menu "Ref. tone (START)" to test on a real watch.
+- `Attention.playTone` is not suitable: it is meant for beeps (2.5–10 kHz examples), not 80–660 Hz.
 
-## If raw PCM IS available
-- Sample at 8 kHz (decimate if the source is faster); window 1024–2048 samples (lowest bass E1 ≈ 41 Hz needs ≥ 2 periods ≈ 390 samples at 8 kHz; use 1024 for stability).
-- **YIN** (cumulative mean normalized difference, threshold ≈ 0.1–0.15, parabolic interpolation) is the best accuracy/cost tradeoff; FFT-based methods are heavier in Monkey C (no SIMD, interpreted). `source/YinDetector.mc` has a skeleton.
-- Budget: naive YIN is O(N·τmax). Restrict τ to a band around the selected string (±1 semitone … a fifth), keep arrays preallocated, use integers where possible, process one frame per ~100–200 ms. Watch-app memory is limited (~100s of KB heap on Fenix 8 — check `System.getSystemStats().freeMemory`); a 1024-sample `Array<Number>` costs ~4–8 KB.
-- Add a noise gate (RMS threshold) and median-filter successive readings.
-
-## If NOT available — alternatives
-1. **Reference tone (not viable on-device):** `Attention.playTone` only produces beeps (Garmin examples use 2.5-10 kHz); string frequencies of 80-660 Hz are outside what the speaker/API supports and caused errors in the simulator.
-2. **Manual/demo mode (implemented):** UI works without input (demo needle) for development.
-3. **Phone companion:** a phone app does the DSP and sends the detected frequency/cents to the watch via `Toybox.Communications` (phone messages/BLE). Added latency, requires the phone nearby.
-4. **External sensor/clip-on tuner** over BLE/ANT+ (long shot).
-5. Ask Garmin to expose mic access (developer forum / feature request).
+## Next steps / risks
+- Test on real hardware: latency, noise rejection, harmonics (octave errors on low strings), battery drain from continuous capture.
+- Tune `threshold` (0.15), `MIN_RMS`, window size; consider smoothing (median of last 3 readings).
+- Investigate the simulator `Output.play` crash (try other formats/rates, resource audio, streaming source) and report to Garmin if it is a simulator bug.

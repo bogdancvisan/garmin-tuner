@@ -64,7 +64,7 @@ class TunerView extends WatchUi.View {
 
         if (freq == null) {
             dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_BLACK);
-            dc.drawText(cx, h * 0.68, Graphics.FONT_XTINY, "START to select string", Graphics.TEXT_JUSTIFY_CENTER);
+            dc.drawText(cx, h * 0.68, Graphics.FONT_XTINY, _model.source.status, Graphics.TEXT_JUSTIFY_CENTER);
             dc.drawText(cx, h * 0.8, Graphics.FONT_XTINY, target.format("%.1f") + " Hz", Graphics.TEXT_JUSTIFY_CENTER);
             return;
         }
