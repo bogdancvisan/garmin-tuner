@@ -20,6 +20,7 @@ Controls: UP/DOWN = previous/next string · START = reference tone · long-press
 3. Install **VS Code** + the **Monkey C** extension; run `Monkey C: Verify Installation`, then `Monkey C: Set Current SDK` if prompted.
 4. Generate a developer key: `Monkey C: Generate a Developer Key` (keep it safe and **never commit it**; `.gitignore` excludes `developer_key*`/`*.der`).
 5. Run in the simulator: F5 (choose `fenix847mm`), or `Monkey C: Run Without Debugging`.
+   If you see `Unable to load private key: undefined`, the key isn't set: run `Monkey C: Select Developer Key` or set `"monkeyC.developerKeyPath"` in VS Code user settings.
 6. Sideload: build a `.prg` and copy it to `GARMIN/APPS` on the watch over USB.
 
 ## Build from the command line / CI
