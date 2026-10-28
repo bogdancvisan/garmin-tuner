@@ -46,6 +46,16 @@ No developer mode is needed on the watch.
 - **Wrong build:** the `.prg` must match the exact model (47 mm vs 51 mm vs Pro).
 - **Collect evidence:** the on-screen status line ("Mic error", "Format unsupported", "No audio API") and `CIQ_LOG.YML` identify the cause.
 
+## Publish to the Connect IQ Store
+
+1. Export the store package (all manifest devices, release build):
+   `monkeyc -e -r -f monkey.jungle -o bin\GarminTuner.iq -y <developer_key.der>`
+   (or VS Code: "Monkey C: Export Project").
+2. Sign in at https://apps.garmin.com/developer and choose "Upload an app".
+3. Upload the `.iq`, then add name, description, category, icon and screenshots (from the simulator).
+4. Declare the Microphone permission and note that audio is processed on the watch only and never stored or sent.
+5. Wait for Garmin's review. Later updates need a higher `version` in `manifest.xml` and the **same developer key**, so back it up.
+
 ## Layout
 `manifest.xml`, `monkey.jungle`, `resources/` (strings, drawables), `source/` (`TunerApp`, `TunerView`, `TunerDelegate`, `Instruments`, `PitchMath`, `PitchSource`, `YinDetector`), `scripts/`, `docs/`.
 
