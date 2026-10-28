@@ -39,6 +39,12 @@ No developer mode is needed on the watch.
 3. Open the app from the watch's Apps list. Accept the microphone permission if prompted.
 4. If it crashes, read `GARMIN\Apps\LOGS\CIQ_LOG.YML` on the watch. Close Garmin Express if the watch doesn't mount.
 
+### Troubleshooting a "blocked" app
+- **Microphone permission:** the app declares `AudioInput`. On the watch, check Settings > Apps (or the app's entry) > Permissions and allow the microphone. In the Garmin Connect / Connect IQ phone app, check the app's permissions too, and allow microphone access for Garmin Connect in the phone's OS settings.
+- **Sideloaded apps and the phone app:** syncing with Connect IQ can show sideloaded apps as unknown; do not uninstall them from the phone app. If it disappears after a sync, copy the `.prg` again.
+- **Wrong build:** the `.prg` must match the exact model (47 mm vs 51 mm vs Pro).
+- **Collect evidence:** the on-screen status line ("Mic error", "Format unsupported", "No audio API") and `CIQ_LOG.YML` identify the cause.
+
 ## Layout
 `manifest.xml`, `monkey.jungle`, `resources/` (strings, drawables), `source/` (`TunerApp`, `TunerView`, `TunerDelegate`, `Instruments`, `PitchMath`, `PitchSource`, `YinDetector`), `scripts/`, `docs/`.
 
