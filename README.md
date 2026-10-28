@@ -2,7 +2,7 @@
 
 Instrument tuner (guitar & more) for Garmin **Fenix 8**, built with Connect IQ (Monkey C).
 
-> **Status:** v0.2. Live mic pitch detection (`Toybox.Audio.Capture` + YIN)  are implemented. Compiles for all four targets and is tested in the simulator with synthetic signals, but **not yet tested on a real watch** (see [docs/MICROPHONE.md](docs/MICROPHONE.md)). Launcher icon is a placeholder.
+> **Status:** v0.2. Live mic pitch detection (`Toybox.Audio.Capture` + YIN) are implemented. Compiles for all four targets and is tested in the simulator with synthetic signals, but **not yet tested on a real watch** (see [docs/MICROPHONE.md](docs/MICROPHONE.md)). Launcher icon is a placeholder.
 
 ## Features
 - Presets: Guitar standard, Drop D, DADGAD, Open G, Bass 4/5, Ukulele, Violin, Viola, Cello, Mandolin, Banjo
