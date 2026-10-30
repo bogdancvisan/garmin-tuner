@@ -63,7 +63,7 @@ class TunerModel {
     function title() as String {
         var g = Instruments.groupNames()[group];
         if (isChromatic() || tuningCount() < 2) { return g; }
-        return g + " - " + Instruments.tuningNames(group)[tuning];
+        return Instruments.tuningNames(group)[tuning];
     }
 
     function setGroup(g as Number) as Void {
