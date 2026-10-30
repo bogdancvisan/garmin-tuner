@@ -9,7 +9,6 @@ import Toybox.WatchUi;
 class TunerModel {
     const TICK_MS = 100;
     const HOLD_TICKS = 8;
-    const BACKLIGHT_MS = 2500;
     const TARGET_WINDOW = 1.5;
 
     var group as Number = 0;
@@ -31,7 +30,6 @@ class TunerModel {
     private var _miss as Number = 0;
     private var _hits as Number = 0;
     private var _lastBuzz as Number = -10000;
-    private var _lastLight as Number = -10000;
 
     function begin() as Void {
         source.start();
@@ -63,7 +61,7 @@ class TunerModel {
     function title() as String {
         var g = Instruments.groupNames()[group];
         if (isChromatic() || tuningCount() < 2) { return g; }
-        return g + " - " + Instruments.tuningNames(group)[tuning];
+        return Instruments.tuningNames(group)[tuning];
     }
 
     function setGroup(g as Number) as Void {
@@ -118,11 +116,6 @@ class TunerModel {
     private function step() as Void {
         var now = System.getTimer();
         updateRange();
-
-        if (now - _lastLight > BACKLIGHT_MS) {
-            _lastLight = now;
-            if (Toybox has :Attention && Attention has :backlight) { Attention.backlight(true); }
-        }
 
         var f = source.getFrequency();
         if (f == null) {

@@ -11,8 +11,8 @@ module Instruments {
 
     function tuningNames(g as Number) as Array<String> {
         switch (g) {
-            case 0: return ["Standard", "Drop D", "DADGAD", "Open G", "Open D", "Half step down", "Full step down"];
-            case 1: return ["4-string", "4-string Drop D", "5-string", "4-string half down"];
+            case 0: return ["Standard", "Drop D", "DADGAD", "Open G", "Open D", "Half down", "Full down"];
+            case 1: return ["4-string", "Drop D", "5-string", "Half down"];
             case 2: return ["Soprano GCEA", "Baritone DGBE", "Low G"];
             case 3: return ["Standard"];
             case 4: return ["Standard"];
